@@ -12,9 +12,11 @@
 #define coroutine_resume    COROUTINE_G(resume)
 
 /* 协程栈大小 */
-#define COROUTINE_MIN_STACK_SIZE            (128 * 1024)
-#define COROUTINE_RECOMMENDED_STACK_SIZE    (256 * 1024)
-#define COROUTINE_MAX_STACK_SIZE            (16 * 1024 * 1024)
+#define COROUTINE_STACK_ALIGNED_SIZE                (4 * 1024)
+#define COROUTINE_MIN_STACK_SIZE                    (128 * 1024)
+#define COROUTINE_RECOMMENDED_STACK_SIZE            (256 * 1024)
+#define COROUTINE_MAX_STACK_SIZE                    (16 * 1024 * 1024)
+#define COROUTINE_ALIGN_STACK_SIZE(size, alignment) (((size) + ((alignment) - 1LL)) & ~((alignment) - 1LL))
 
 /* 协程id */
 #define COROUTINE_MAX_ID    UINT64_MAX
@@ -35,6 +37,7 @@ typedef enum {
 typedef enum {
     COROUTINE_OPCODE_NONE,
     COROUTINE_OPCODE_CHECKED,
+    COROUTINE_OPCODE_WAIT,
 } coroutine_opcode_t;
 
 /* 协程回调函数原型 */
@@ -83,10 +86,14 @@ extern GLOBALS_DECLARE(coroutine)
 bool_t coroutine_runtime_init(void);
 uint32_t coroutine_set_default_stack_size(uint32_t size);
 coroutine_resume_t coroutine_register_resume(coroutine_resume_t resume);
+void coroutine_init(coroutine_t *coroutine);
+coroutine_t *coroutine_create(coroutine_t *coroutine, coroutine_function_t function);
+coroutine_t *coroutine_create_ex(coroutine_t *coroutine, coroutine_function_t function, uint32_t stack_size);
 bool_t coroutine_resume_standard(coroutine_t *coroutine, void *data, void **retval);
 bool_t coroutine_is_resumable(coroutine_t *coroutine);
 bool_t coroutine_is_alive(coroutine_t *coroutine);
 void *coroutine_jump(coroutine_t *coroutine, void *data);
 void coroutine_close(coroutine_t *coroutine);
+bool_t coroutine_yield(void *data, void **retval);
 
 #endif
