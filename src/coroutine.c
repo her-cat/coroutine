@@ -227,8 +227,9 @@ void *coroutine_jump(coroutine_t *coroutine, void *data) {
     coroutine->state = COROUTINE_STATE_RUNNING;
     /* 重置操作码 */
     coroutine->opcodes = COROUTINE_OPCODE_NONE;
-    /* 开始跳转到 coroutine */
+    /* 设置传输数据 */
     coroutine->transfer_data = data;
+    /* 开始跳转到 coroutine */
     coroutine_context_jump(&current_coroutine->context, &coroutine->context);
     data = current_coroutine->transfer_data;
     /* 处理来源 */
