@@ -1,6 +1,7 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
+#include <zconf.h>
 #include "coroutine.h"
 
 /* 协程调度函数原型 */
