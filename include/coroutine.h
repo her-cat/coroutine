@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <ucontext.h>
 #include "builtin.h"
 
@@ -69,7 +70,7 @@ typedef bool_t (*coroutine_resume_t)(coroutine_t *coroutine, void *data, void **
 /* 协程全局状态 */
 GLOBALS_STRUCT_BEGIN(coroutine)
     uint64_t last_id; /* 最后一个协程id */
-    uint32_t count; /* 协程数量 */
+    uint32_t count; /* 活跃中的协程数量 */
     uint32_t default_stack_size; /* 默认栈大小 */
     /* coroutines */
     coroutine_t *current; /* 当前协程指针 */
@@ -95,5 +96,7 @@ bool_t coroutine_is_alive(coroutine_t *coroutine);
 void *coroutine_jump(coroutine_t *coroutine, void *data);
 void coroutine_close(coroutine_t *coroutine);
 bool_t coroutine_yield(void *data, void **retval);
+coroutine_t *coroutine_get_by_index(uint32_t index);
+coroutine_t *coroutine_get_root(void);
 
 #endif

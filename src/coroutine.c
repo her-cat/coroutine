@@ -74,7 +74,7 @@ static void coroutine_context_function(void *data) {
     data = coroutine->function(coroutine->transfer_data);
     /* 更新协程状态 */
     coroutine->state = COROUTINE_STATE_FINISHED;
-    /* 协程数量-1 */
+    /* 活跃中的协程数量-1 */
     COROUTINE_G(count)--;
 
     printf("finished coroutine[%ld], count = %d\n", coroutine->id, COROUTINE_G(count));
@@ -262,7 +262,7 @@ void coroutine_close(coroutine_t *coroutine) {
     free(stack);
 }
 
-/* 让出协程 */
+/* 让出控制权 */
 bool_t coroutine_yield(void *data, void **retval) {
     coroutine_t *coroutine = COROUTINE_G(current)->previous;
 
@@ -274,17 +274,34 @@ bool_t coroutine_yield(void *data, void **retval) {
     return coroutine_resume(coroutine, data, retval);
 }
 
-void *test_callback(void *data) {
-    printf("hello, world\n");
-    return data;
+/* 获取指定索引的协程 */
+coroutine_t *coroutine_get_by_index(uint32_t index) {
+    uint32_t count = 0;
+    coroutine_t *coroutine = COROUTINE_G(current);
+
+    /* 从后向前遍历，找到第一个协程 */
+    while (coroutine->previous != NULL) {
+        count++;
+        coroutine = coroutine->previous;
+    }
+
+    if (index != 0) {
+        /* index 大于活跃中的协程数量 */
+        if (index > count) {
+            return NULL;
+        }
+        /* 重新循环，找到对应的协程 */
+        coroutine = COROUTINE_G(current);
+        count -= index;
+        while (count--) {
+            coroutine = coroutine->previous;
+        }
+    }
+
+    return coroutine;
 }
 
-int main() {
-    coroutine_runtime_init();
-
-    coroutine_t *coroutine = coroutine_create(NULL, test_callback);
-    coroutine_resume(coroutine, NULL, NULL);
-
-    printf("hello, coroutine\n");
-    return 0;
+/* 获取根协程 */
+coroutine_t *coroutine_get_root(void) {
+    return coroutine_get_by_index(0);
 }
