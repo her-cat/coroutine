@@ -5,22 +5,25 @@ static void *coroutine_scheduler_function(void *data) {
     coroutine_t *coroutine = COROUTINE_G(current);
     coroutine_scheduler_t *scheduler = (coroutine_scheduler_t *) data;
 
-    printf("scheduler coroutine id = %ld\n", coroutine->id);
-
     /* 让当前协程成为调度器 */
     COROUTINE_G(scheduler) = coroutine;
+    /* 活跃的协程数量排除调度器的协程 */
     COROUTINE_G(count)--;
 
     /* 让出控制权 */
     coroutine_yield(NULL, NULL);
 
     while (coroutine == coroutine_get_root()) {
-        /* TODO: 调度协程 */
-        /* TODO: 处理死锁 */
+        if (COROUTINE_G(count) > 0) {
+            printf("Dead lock: all coroutines are asleep\n");
+            while (usleep(60 * 1000 * 1000) == 0);
+        }
         /* TODO: 通知等待的协程 */
     }
 
+    /* 关闭协程调度器 */
     COROUTINE_G(scheduler) = NULL;
+    /* 恢复活跃的协程数量，避免数据异常 */
     COROUTINE_G(count)++;
 
     return NULL;
