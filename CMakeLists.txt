@@ -3,6 +3,9 @@ project(coroutine C)
 
 set(CMAKE_C_STANDARD 99)
 
+SET(CMAKE_BUILD_TYPE "Debug")
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")
+
 set(coroutine_includes include)
 set(coroutine_sources src/coroutine.c src/scheduler.c src/main.c)
 

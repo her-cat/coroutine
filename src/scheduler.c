@@ -59,7 +59,7 @@ coroutine_t *coroutine_scheduler_run(coroutine_t *coroutine, const coroutine_sch
     assert(COROUTINE_G(scheduler) != NULL);
     /* 协程状态设置为运行中 */
     coroutine->state = COROUTINE_STATE_RUNNING;
-    /* 让协程成为新的根协程 */
+    /* 让调度器的协程成为根协程的前置协程 */
     coroutine_get_root()->previous = coroutine;
 
     return coroutine;
