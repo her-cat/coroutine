@@ -70,6 +70,8 @@ static uint32_t coroutine_align_stack_size(uint32_t size) {
 static void coroutine_context_function(void *data) {
     coroutine_t *coroutine = COROUTINE_G(current);
 
+    /* 活跃中的协程数量+1 */
+    COROUTINE_G(count)++;
     /* 执行回调函数 */
     data = coroutine->function(coroutine->transfer_data);
     /* 更新协程状态 */
@@ -77,7 +79,9 @@ static void coroutine_context_function(void *data) {
     /* 活跃中的协程数量-1 */
     COROUTINE_G(count)--;
 
+#ifdef DEBUG
     printf("finished coroutine[%ld], count = %d\n", coroutine->id, COROUTINE_G(count));
+#endif
 
     /* 让出控制权给前置协程 */
     coroutine_yield(data, NULL);
@@ -141,9 +145,10 @@ coroutine_t *coroutine_create_ex(coroutine_t *coroutine, coroutine_function_t fu
     coroutine->context = context;
     coroutine->transfer_data = NULL;
 
+#ifdef DEBUG
     printf("create coroutine[%ld] stack = %p, stack_size = %d, function = %p\n",
            coroutine->id, coroutine->stack, coroutine->stack_size, coroutine->function);
-
+#endif
     return coroutine;
 }
 
@@ -205,9 +210,9 @@ bool_t coroutine_is_alive(coroutine_t *coroutine) {
 /* 协程跳转 */
 void *coroutine_jump(coroutine_t *coroutine, void *data) {
     coroutine_t *current_coroutine = COROUTINE_G(current);
-
-    printf("jump to coroutine[%ld]\n", coroutine->id);
-
+#ifdef DEBUG
+    printf("coroutine[%ld] jump to coroutine[%ld]\n", current_coroutine->id, coroutine->id);
+#endif
     /* 记录 coroutine 是从哪个协程切换过来的 */
     coroutine->from = current_coroutine;
     if (current_coroutine->previous == coroutine) {
@@ -304,4 +309,22 @@ coroutine_t *coroutine_get_by_index(uint32_t index) {
 /* 获取根协程 */
 coroutine_t *coroutine_get_root(void) {
     return coroutine_get_by_index(0);
+}
+
+/* 运行协程 */
+coroutine_t *coroutine_run(coroutine_t *coroutine, coroutine_function_t function, void *data) {
+    bool_t ret;
+
+    coroutine = coroutine_create(coroutine, function);
+    if (coroutine == NULL) {
+        return NULL;
+    }
+
+    ret = coroutine_resume(coroutine, data, NULL);
+    if (!ret) {
+        coroutine_close(coroutine);
+        return NULL;
+    }
+
+    return coroutine;
 }

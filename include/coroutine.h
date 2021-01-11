@@ -98,5 +98,6 @@ void coroutine_close(coroutine_t *coroutine);
 bool_t coroutine_yield(void *data, void **retval);
 coroutine_t *coroutine_get_by_index(uint32_t index);
 coroutine_t *coroutine_get_root(void);
+coroutine_t *coroutine_run(coroutine_t *coroutine, coroutine_function_t function, void *data);
 
 #endif
