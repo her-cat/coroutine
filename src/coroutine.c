@@ -284,7 +284,7 @@ coroutine_t *coroutine_get_by_index(uint32_t index) {
     uint32_t count = 0;
     coroutine_t *coroutine = COROUTINE_G(current);
 
-    /* 从后向前遍历，找到第一个协程 */
+    /* 从后向前遍历，找到第一个协程并得到活跃中的协程数量 */
     while (coroutine->previous != NULL) {
         count++;
         coroutine = coroutine->previous;
